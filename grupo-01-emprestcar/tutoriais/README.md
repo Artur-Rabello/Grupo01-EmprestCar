@@ -16,12 +16,12 @@ O núcleo implementado abrange o ciclo de vida completo de uma locação: desde 
 
 | Integrante | Papel na Defesa | Responsabilidade Principal no Sistema |
 | :--- | :--- | :--- |
-| **Artur Rabello** | Pessoa 1 | Visão Geral do Produto, Personas, ASRs 1 a 5 e Atributos de Qualidade |
-| **João Teixeira** | Pessoa 2 | Caderno EARS, Decomposição C4 Nível 3 (GRASP) e ADR-001 (UUID Imutável) |
+| **Artur Rabello de Oliveira** | Pessoa 1 | Visão Geral do Produto, Personas, ASRs 1 a 5 e Atributos de Qualidade |
+| **Rafael Spaziani** | Pessoa 2 | Caderno EARS, Decomposição C4 Nível 3 (GRASP) e ADR-001 (UUID Imutável) |
 | **Luis Fernando** | Pessoa 3 | API REST Core (`/veiculos`, `/locacoes`), Regras de Negócio e Erros RFC 9457 |
-| **Manassés Zenaro** | Pessoa 4 | Mensageria RabbitMQ, Consumidores de Notificação/Frota, DLQ e Idempotência |
-| **Miguel Ângelo** | Pessoa 5 | Servidor GraphQL, Resolvers HTTP e Otimização do Painel do Locatário |
-| **Rafael Spaziani** | Pessoa 6 | API Gateway (Porta 3000), Autenticação X-API-Key, Rate Limit e Circuit Breaker |
+| **Miguel Ângelo** | Pessoa 4 | Mensageria RabbitMQ, Consumidores de Notificação/Frota, DLQ e Idempotência |
+| **Manassés Zenaro** | Pessoa 5 | Servidor GraphQL, Resolvers HTTP e Otimização do Painel do Locatário |
+| **João Teixeira** | Pessoa 6 | API Gateway (Porta 3000), Autenticação X-API-Key, Rate Limit e Circuit Breaker |
 
 ---
 
