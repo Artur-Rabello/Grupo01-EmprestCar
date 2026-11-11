@@ -1,0 +1,249 @@
+openapi: 3.2.0
+info:
+  title: API EmprestCar - Serviços de Locação e Frota
+  version: 1.0.0
+  description: API REST para gerenciamento de frota e reservas de veículos entre locadores e locatários.
+servers:
+  - url: http://127.0.0.1:3001
+    description: Servidor REST Interno
+  - url: http://localhost:3000/api
+    description: API Gateway Público
+paths:
+  /veiculos:
+    get:
+      summary: Lista a frota de veículos disponíveis
+      description: Retorna a coleção de automóveis cadastrados com filtros por categoria e busca textual, além de ordenação e paginação.
+      parameters:
+        - name: categoria
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [COMPACTO, SEDAN, SUV, LUXO]
+        - name: busca
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: pagina
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limite
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+            maximum: 50
+      responses:
+        '200':
+          description: Lista paginada de veículos retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dados:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Veiculo'
+                  paginacao:
+                    $ref: '#/components/schemas/Paginacao'
+        '400':
+          description: Parâmetro de consulta inválido
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problema'
+
+  /locacoes:
+    get:
+      summary: Consulta o histórico de reservas
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [PENDENTE, CONFIRMADA, ATIVA, CONCLUIDA, CANCELADA]
+      responses:
+        '200':
+          description: Lista de locações do usuário
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Locacao'
+    post:
+      summary: Cria uma nova reserva de veículo
+      description: Registra um novo aluguel. Dispara o evento assíncrono locacao.criada no RabbitMQ e valida CNH, datas e restrições de idade.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NovaLocacaoInput'
+      responses:
+        '201':
+          description: Reserva de locação criada com sucesso
+          headers:
+            Location:
+              schema:
+                type: string
+              description: URI pública do recurso de locação criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Locacao'
+        '409':
+          description: Conflito de agenda (Veículo já reservado para o mesmo período)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problema'
+        '422':
+          description: Violacao de regras de negócio (CNH vencida, datas inválidas ou idade insuficiente para categoria LUXO)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problema'
+
+  /locacoes/{id}:
+    get:
+      summary: Busca detalhes de uma reserva específica pelo ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Reserva localizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Locacao'
+        '404':
+          description: Reserva não encontrada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problema'
+    delete:
+      summary: Cancela uma reserva de locação
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Reserva removida/cancelada com sucesso sem corpo de resposta
+        '404':
+          description: Reserva não encontrada
+
+components:
+  schemas:
+    Veiculo:
+      type: object
+      required: [id, modelo, marca, placa, ano, valorDiario, categoria]
+      properties:
+        id:
+          type: integer
+        modelo:
+          type: string
+        marca:
+          type: string
+        placa:
+          type: string
+        ano:
+          type: integer
+        valorDiario:
+          type: number
+          format: float
+        categoria:
+          type: string
+          enum: [COMPACTO, SEDAN, SUV, LUXO]
+
+    NovaLocacaoInput:
+      type: object
+      required: [veiculoId, locatarioId, dataInicio, dataFim]
+      properties:
+        veiculoId:
+          type: integer
+        locatarioId:
+          type: string
+          format: uuid
+        dataInicio:
+          type: string
+          format: date
+        dataFim:
+          type: string
+          format: date
+
+    Locacao:
+      type: object
+      required: [id, veiculoId, locatarioId, dataInicio, dataFim, valorTotal, status]
+      properties:
+        id:
+          type: integer
+        veiculoId:
+          type: integer
+        locatarioId:
+          type: string
+          format: uuid
+        dataInicio:
+          type: string
+          format: date
+        dataFim:
+          type: string
+          format: date
+        valorTotal:
+          type: number
+          format: float
+        status:
+          type: string
+          enum: [PENDENTE, CONFIRMADA, ATIVA, CONCLUIDA, CANCELADA]
+
+    Paginacao:
+      type: object
+      properties:
+        pagina:
+          type: integer
+        limite:
+          type: integer
+        total:
+          type: integer
+        totalPaginas:
+          type: integer
+
+    Problema:
+      type: object
+      required: [type, title, status, detail, instance]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        erros:
+          type: array
+          items:
+            type: object
+            properties:
+              campo:
+                type: string
+              mensagem:
+                type: string

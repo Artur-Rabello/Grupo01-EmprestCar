@@ -1,0 +1,22 @@
+{
+  "name": "emprestcar-tutoriais",
+  "version": "1.0.0",
+  "description": "Sistema de aluguel de carros P2P - EmprestCar",
+  "main": "gateway/server.js",
+  "type": "module",
+  "scripts": {
+    "start:rest": "node rest/server.js",
+    "start:graphql": "node graphql/server.js",
+    "start:notificacao": "node mensageria/consumidor-notificacao.js",
+    "start:frota": "node mensageria/consumidor-frota.js",
+    "start:gateway": "node gateway/server.js",
+    "test:cenarios": "bash testes/cenarios.sh"
+  },
+  "dependencies": {
+    "@apollo/server": "^4.11.0",
+    "amqplib": "^0.10.4",
+    "cors": "^2.8.5",
+    "express": "^5.0.1",
+    "graphql": "^16.10.0"
+  }
+}
